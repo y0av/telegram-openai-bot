@@ -45,7 +45,6 @@ exports.botfunction = onRequest(async (request, response) => {
 
           // Create temporary files
           const tempJpgPath = path.join(os.tmpdir(), `${fileId}.jpg`);
-          const tempPngPath = path.join(os.tmpdir(), `${fileId}.png`);
 
           // Download the file
           const fileUrl = `https://api.telegram.org/file/bot${token}/${fileInfo.file_path}`;
@@ -64,23 +63,26 @@ exports.botfunction = onRequest(async (request, response) => {
             writer.on("error", reject);
           });
 
-          // Convert image to PNG format using sharp
+          // Resize image to ensure it's under 4MB without conversion to PNG
           await sharp(tempJpgPath)
-            // Resize to ensure it's under 4MB
             .resize({width: 1024, height: 1024, fit: "inside"})
-            .png({quality: 80})
-            .toFile(tempPngPath);
+            .jpeg({quality: 80})
+            .toFile(tempJpgPath + ".resized");
+
+          // Replace original with resized version
+          fs.renameSync(tempJpgPath + ".resized", tempJpgPath);
 
           // Check file size
-          const stats = fs.statSync(tempPngPath);
+          const stats = fs.statSync(tempJpgPath);
           const fileSizeInMB = stats.size / (1024 * 1024);
           if (fileSizeInMB >= 4) {
             throw new Error("Image is too large (must be less than 4MB)");
           }
 
-          // Create edit with OpenAI using PNG
+          // Create edit with OpenAI using properly typed file
+          const imageBuffer = fs.readFileSync(tempJpgPath);
           const result = await openai.images.edit({
-            image: fs.createReadStream(tempPngPath),
+            image: new File([imageBuffer], "image.jpg", {type: "image/jpeg"}),
             model: "gpt-image-1",
             prompt: caption,
           });
@@ -102,7 +104,6 @@ exports.botfunction = onRequest(async (request, response) => {
 
           // Clean up temp files
           fs.unlinkSync(tempJpgPath);
-          fs.unlinkSync(tempPngPath);
         } catch (variationError) {
           console.error("Error creating image variation:", variationError);
           await bot.sendMessage({
