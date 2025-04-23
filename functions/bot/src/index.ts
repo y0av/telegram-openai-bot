@@ -128,7 +128,8 @@ exports.botfunction = onRequest(async (request, response) => {
 
         await bot.sendMessage({
           chat_id: id,
-          text: "🎨 Generating image using image-1 with prompt: \"" + prompt + "\"...",
+          text: "🎨 Generating image using image-1 with prompt: \"" +
+            prompt + "\"...",
         });
 
         try {
@@ -174,7 +175,8 @@ exports.botfunction = onRequest(async (request, response) => {
 
         await bot.sendMessage({
           chat_id: id,
-          text: "🖼️ Generating image using dalle-3 with prompt: \"" + prompt + "\"...",
+          text: "🖼️ Generating image using dalle-3 with prompt: \"" +
+            prompt + "\"...",
         });
 
         try {
