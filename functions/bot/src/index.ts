@@ -86,7 +86,7 @@ exports.botfunction = onRequest(async (request, response) => {
           });
 
           // Get the generated image URL
-          const generatedImageUrl = result.data[0]?.url;
+          const generatedImageUrl = result.data?.[0]?.url;
 
           if (generatedImageUrl) {
             // Send back the generated image
@@ -114,21 +114,21 @@ exports.botfunction = onRequest(async (request, response) => {
                     String(variationError)),
           });
         }
-      } else if (text && text.startsWith("/generate")) {
-        // Extract the prompt (everything after "/generate ")
-        const prompt = text.substring("/generate".length).trim();
+      } else if (text && text.startsWith("/image1")) {
+        // Extract the prompt (everything after "/image1 ")
+        const prompt = text.substring("/image1".length).trim();
 
         if (!prompt) {
           await bot.sendMessage({
             chat_id: id,
-            text: "⚠️ Please provide a prompt after /generate",
+            text: "⚠️ Please provide a prompt after /image1",
           });
           return;
         }
 
         await bot.sendMessage({
           chat_id: id,
-          text: "🎨 Generating image with prompt: \"" + prompt + "\"...",
+          text: "🎨 Generating image using image-1 with prompt: \"" + prompt + "\"...",
         });
 
         try {
@@ -139,13 +139,13 @@ exports.botfunction = onRequest(async (request, response) => {
             size: "1024x1024",
           });
 
-          const imageUrl = response.data[0]?.url;
+          const imageUrl = response.data?.[0]?.url;
 
           if (imageUrl) {
             await bot.sendPhoto({
               chat_id: id,
               photo: imageUrl,
-              caption: "Here's your generated image for: \"" + prompt + "\"",
+              caption: "Here's your image-1 image for: \"" + prompt + "\"",
             });
           } else {
             throw new Error("No image URL received from OpenAI");
@@ -160,21 +160,21 @@ exports.botfunction = onRequest(async (request, response) => {
                     String(generateError)),
           });
         }
-      } else if (text && text.startsWith("/generatehd")) {
-        // Extract the prompt (everything after "/generatehd ")
-        const prompt = text.substring("/generatehd".length).trim();
+      } else if (text && text.startsWith("/dalle3")) {
+        // Extract the prompt (everything after "/generate")
+        const prompt = text.substring("/dalle3".length).trim();
 
         if (!prompt) {
           await bot.sendMessage({
             chat_id: id,
-            text: "⚠️ Please provide a prompt after /generatehd",
+            text: "⚠️ Please provide a prompt after /dalle3",
           });
           return;
         }
 
         await bot.sendMessage({
           chat_id: id,
-          text: "🖼️ Generating HD image with prompt: \"" + prompt + "\"...",
+          text: "🖼️ Generating image using dalle-3 with prompt: \"" + prompt + "\"...",
         });
 
         try {
@@ -182,25 +182,25 @@ exports.botfunction = onRequest(async (request, response) => {
             model: "dall-e-3",
             prompt: prompt,
             n: 1,
-            size: "1792x1024", // HD size
+            size: "1024x1024",
           });
 
-          const imageUrl = response.data[0]?.url;
+          const imageUrl = response.data?.[0]?.url;
 
           if (imageUrl) {
             await bot.sendPhoto({
               chat_id: id,
               photo: imageUrl,
-              caption: "Here's your HD generated image for: \"" + prompt + "\"",
+              caption: "Here's your dalle3 image for: \"" + prompt + "\"",
             });
           } else {
             throw new Error("No image URL received from OpenAI");
           }
         } catch (generateError) {
-          console.error("Error generating HD image:", generateError);
+          console.error("Error generating image:", generateError);
           await bot.sendMessage({
             chat_id: id,
-            text: "❌ Sorry, I couldn't generate the HD image. Error: " +
+            text: "❌ Sorry, I couldn't generate the image. Error: " +
                   (generateError instanceof Error ?
                     generateError.message :
                     String(generateError)),
