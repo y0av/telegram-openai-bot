@@ -78,9 +78,11 @@ exports.botfunction = onRequest(async (request, response) => {
             throw new Error("Image is too large (must be less than 4MB)");
           }
 
-          // Create variation with OpenAI using PNG
-          const result = await openai.images.createVariation({
+          // Create edit with OpenAI using PNG
+          const result = await openai.images.edit({
             image: fs.createReadStream(tempPngPath),
+            model: "gpt-image-1",
+            prompt: caption,
           });
 
           // Get the generated image URL
@@ -110,6 +112,98 @@ exports.botfunction = onRequest(async (request, response) => {
                   (variationError instanceof Error ?
                     variationError.message :
                     String(variationError)),
+          });
+        }
+      } else if (text && text.startsWith("/generate")) {
+        // Extract the prompt (everything after "/generate ")
+        const prompt = text.substring("/generate".length).trim();
+
+        if (!prompt) {
+          await bot.sendMessage({
+            chat_id: id,
+            text: "⚠️ Please provide a prompt after /generate",
+          });
+          return;
+        }
+
+        await bot.sendMessage({
+          chat_id: id,
+          text: "🎨 Generating image with prompt: \"" + prompt + "\"...",
+        });
+
+        try {
+          const response = await openai.images.generate({
+            model: "gpt-image-1",
+            prompt: prompt,
+            n: 1,
+            size: "1024x1024",
+          });
+
+          const imageUrl = response.data[0]?.url;
+
+          if (imageUrl) {
+            await bot.sendPhoto({
+              chat_id: id,
+              photo: imageUrl,
+              caption: "Here's your generated image for: \"" + prompt + "\"",
+            });
+          } else {
+            throw new Error("No image URL received from OpenAI");
+          }
+        } catch (generateError) {
+          console.error("Error generating image:", generateError);
+          await bot.sendMessage({
+            chat_id: id,
+            text: "❌ Sorry, I couldn't generate the image. Error: " +
+                  (generateError instanceof Error ?
+                    generateError.message :
+                    String(generateError)),
+          });
+        }
+      } else if (text && text.startsWith("/generatehd")) {
+        // Extract the prompt (everything after "/generatehd ")
+        const prompt = text.substring("/generatehd".length).trim();
+
+        if (!prompt) {
+          await bot.sendMessage({
+            chat_id: id,
+            text: "⚠️ Please provide a prompt after /generatehd",
+          });
+          return;
+        }
+
+        await bot.sendMessage({
+          chat_id: id,
+          text: "🖼️ Generating HD image with prompt: \"" + prompt + "\"...",
+        });
+
+        try {
+          const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: prompt,
+            n: 1,
+            size: "1792x1024", // HD size
+          });
+
+          const imageUrl = response.data[0]?.url;
+
+          if (imageUrl) {
+            await bot.sendPhoto({
+              chat_id: id,
+              photo: imageUrl,
+              caption: "Here's your HD generated image for: \"" + prompt + "\"",
+            });
+          } else {
+            throw new Error("No image URL received from OpenAI");
+          }
+        } catch (generateError) {
+          console.error("Error generating HD image:", generateError);
+          await bot.sendMessage({
+            chat_id: id,
+            text: "❌ Sorry, I couldn't generate the HD image. Error: " +
+                  (generateError instanceof Error ?
+                    generateError.message :
+                    String(generateError)),
           });
         }
       } else if (text && text === "/test") {
