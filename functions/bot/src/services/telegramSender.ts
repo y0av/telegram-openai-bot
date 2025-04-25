@@ -82,7 +82,7 @@ export class TelegramSenderService {
    * the loading animation
    */
   async sendProgressMessage(chatId: number, text: string): Promise<() => void> {
-    const loadingIcons = ["⏳", "⌛️", "⏳", "⌛️"];
+    const loadingIcons = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"];
     let currentIconIndex = 0;
 
     // Send initial message with first loading icon

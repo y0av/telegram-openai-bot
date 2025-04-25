@@ -231,7 +231,6 @@ export class TelegramBotService {
         prompt: prompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json", // Explicitly request base64 encoded image
       });
 
       // Stop the loading animation
@@ -252,7 +251,7 @@ export class TelegramBotService {
         await this.sender.sendPhoto(
           chatId,
           fs.createReadStream(tempImagePath),
-          "Here's your image-1 image for: \"" + prompt + "\""
+          "image-1 prompt: \"" + prompt + "\""
         );
 
         // Clean up the temp file
@@ -315,8 +314,8 @@ export class TelegramBotService {
 
       if (imageData?.b64_json) {
         // Create a temporary file for the base64 image
-        const fileName = `dalle3_${Date.now()}.png`;
-        const tempImagePath = path.join(os.tmpdir(), fileName);
+        const imageName = `dalle3_${Date.now()}.png`;
+        const tempImagePath = path.join(os.tmpdir(), imageName);
 
         // Decode and save the base64 image
         const imageBuffer = Buffer.from(imageData.b64_json, "base64");
@@ -326,7 +325,7 @@ export class TelegramBotService {
         await this.sender.sendPhoto(
           chatId,
           fs.createReadStream(tempImagePath),
-          "Here's your dalle3 image for: \"" + prompt + "\""
+          "dalle3 prompt: \"" + prompt + "\""
         );
 
         // Clean up the temp file
