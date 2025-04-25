@@ -231,18 +231,18 @@ export class TelegramBotService {
         prompt: prompt,
         n: 1,
         size: "1024x1024",
+        response_format: "b64_json", // Explicitly request base64 encoded image
       });
 
       // Stop the loading animation
       stopLoading();
 
-      // Check if the response contains b64_json (for gpt-image-1)
-      // or url (for dall-e-3)
       const imageData = response.data?.[0];
 
       if (imageData?.b64_json) {
         // Create a temporary file for the base64 image
-        const tempImagePath = path.join(os.tmpdir(), `${Date.now()}.png`);
+        const imageName = `image1_${Date.now()}.png`;
+        const tempImagePath = path.join(os.tmpdir(), imageName);
 
         // Decode and save the base64 image
         const imageBuffer = Buffer.from(imageData.b64_json, "base64");
@@ -257,15 +257,8 @@ export class TelegramBotService {
 
         // Clean up the temp file
         fs.unlinkSync(tempImagePath);
-      } else if (imageData?.url) {
-        // Handle URL-based response (for dall-e-3)
-        await this.sender.sendPhoto(
-          chatId,
-          imageData.url,
-          "Here's your image-1 image for: \"" + prompt + "\""
-        );
       } else {
-        throw new Error("No image data received from OpenAI");
+        throw new Error("No base64 image data received from OpenAI");
       }
     } catch (generateError) {
       // Stop the loading animation before showing error
@@ -312,21 +305,34 @@ export class TelegramBotService {
         prompt: prompt,
         n: 1,
         size: "1024x1024",
+        response_format: "b64_json", // Request base64 encoded image
       });
 
       // Stop the loading animation
       stopLoading();
 
-      const imageUrl = response.data?.[0]?.url;
+      const imageData = response.data?.[0];
 
-      if (imageUrl) {
+      if (imageData?.b64_json) {
+        // Create a temporary file for the base64 image
+        const fileName = `dalle3_${Date.now()}.png`;
+        const tempImagePath = path.join(os.tmpdir(), fileName);
+
+        // Decode and save the base64 image
+        const imageBuffer = Buffer.from(imageData.b64_json, "base64");
+        fs.writeFileSync(tempImagePath, imageBuffer);
+
+        // Send the image file directly
         await this.sender.sendPhoto(
           chatId,
-          imageUrl,
+          fs.createReadStream(tempImagePath),
           "Here's your dalle3 image for: \"" + prompt + "\""
         );
+
+        // Clean up the temp file
+        fs.unlinkSync(tempImagePath);
       } else {
-        throw new Error("No image URL received from OpenAI");
+        throw new Error("No base64 image data received from OpenAI");
       }
     } catch (generateError) {
       // Stop the loading animation before showing error
