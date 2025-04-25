@@ -71,4 +71,51 @@ export class TelegramSenderService {
       }`
     );
   }
+
+  /**
+   * Sends a progress message with a loading animation
+   * that updates every 2 seconds
+   * @async
+   * @param {number} chatId - The Telegram chat ID
+   * @param {string} text - The message text to show
+   * @return {Promise<void>}
+   * the loading animation
+   */
+  async sendProgressMessage(chatId: number, text: string): Promise<() => void> {
+    const loadingIcons = ["⏳", "⌛️", "⏳", "⌛️"];
+    let currentIconIndex = 0;
+
+    // Send initial message with first loading icon
+    const response = await this.bot.sendMessage({
+      chat_id: chatId,
+      text: `${text} ${loadingIcons[0]}`,
+    });
+
+    // Store message ID for updating
+    const messageId = response.message_id;
+
+    // Set interval to update the loading icon
+    const intervalId = setInterval(async () => {
+      currentIconIndex = (currentIconIndex + 1) % loadingIcons.length;
+      await this.bot.editMessageText({
+        chat_id: chatId,
+        message_id: messageId,
+        text: `${text} ${loadingIcons[currentIconIndex]}`,
+      }).catch((error) => {
+        console.error("Error updating progress message:", error);
+      });
+    }, 2000);
+
+    // Return function to stop the animation
+    return () => {
+      clearInterval(intervalId);
+      this.bot.editMessageText({
+        chat_id: chatId,
+        message_id: messageId,
+        text: `${text} ✅`,
+      }).catch((error) => {
+        console.error("Error finalizing progress message:", error);
+      });
+    };
+  }
 }

@@ -92,7 +92,7 @@ export class TelegramBotService {
     chatId: number,
     photo: Array<{ file_id: string }>,
     caption: string): Promise<void> {
-    await this.sender.sendMessage(
+    const stopLoading = await this.sender.sendProgressMessage(
       chatId,
       "📸 Received your photo. Creating a variation..."
     );
@@ -150,6 +150,9 @@ export class TelegramBotService {
         prompt: caption,
       });
 
+      // Stop the loading animation
+      stopLoading();
+
       // Handle base64 response for gpt-image-1
       const imageData = result.data?.[0];
 
@@ -184,6 +187,8 @@ export class TelegramBotService {
       // Clean up temp files
       fs.unlinkSync(tempJpgPath);
     } catch (variationError) {
+      // Stop the loading animation before showing error
+      stopLoading();
       await this.sender.sendErrorMessage(
         chatId,
         "create a variation of your image",
@@ -215,10 +220,9 @@ export class TelegramBotService {
       return;
     }
 
-    await this.sender.sendMessage(
+    const stopLoading = await this.sender.sendProgressMessage(
       chatId,
-      "🎨 Generating image using image-1 with prompt: \"" +
-        prompt + "\"..."
+      "🎨 Generating image using image-1 with prompt: \"" + prompt + "\""
     );
 
     try {
@@ -228,6 +232,9 @@ export class TelegramBotService {
         n: 1,
         size: "1024x1024",
       });
+
+      // Stop the loading animation
+      stopLoading();
 
       // Check if the response contains b64_json (for gpt-image-1)
       // or url (for dall-e-3)
@@ -261,6 +268,8 @@ export class TelegramBotService {
         throw new Error("No image data received from OpenAI");
       }
     } catch (generateError) {
+      // Stop the loading animation before showing error
+      stopLoading();
       await this.sender.sendErrorMessage(
         chatId,
         "generate the image",
@@ -268,6 +277,7 @@ export class TelegramBotService {
       );
     }
   }
+
   /**
  * Handles the /dalle3 command by generating images using OpenAI's DALL-E 3.
  * @private
@@ -291,10 +301,9 @@ export class TelegramBotService {
       return;
     }
 
-    await this.sender.sendMessage(
+    const stopLoading = await this.sender.sendProgressMessage(
       chatId,
-      `🖼️ Generating image using dalle-3 with prompt:
-      "${prompt}"...`
+      `🖼️ Generating image using dalle-3 with prompt: "${prompt}"`
     );
 
     try {
@@ -304,6 +313,9 @@ export class TelegramBotService {
         n: 1,
         size: "1024x1024",
       });
+
+      // Stop the loading animation
+      stopLoading();
 
       const imageUrl = response.data?.[0]?.url;
 
@@ -317,6 +329,8 @@ export class TelegramBotService {
         throw new Error("No image URL received from OpenAI");
       }
     } catch (generateError) {
+      // Stop the loading animation before showing error
+      stopLoading();
       await this.sender.sendErrorMessage(
         chatId,
         "generate the image",
