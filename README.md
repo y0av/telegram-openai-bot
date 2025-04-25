@@ -1,9 +1,5 @@
 
-# Host a telegram bot on firebase functions
-
-lots of the articles I found on this topic dont do it properly and the instace shuts down after several minutes and the bot dies with it.
-this is a working serverless telegram bot hosted on firebase functions.
- step by step tutorial
+# a telegram bot for image generation using openAI image-1 hosted as a serverless firebase function
 
  
 ## Requirements
@@ -13,12 +9,15 @@ this is a working serverless telegram bot hosted on firebase functions.
 [firebase cli](https://firebase.google.com/docs/cli/) (```npm install -g firebase-tools```)
 
 [curl](https://curl.se/download.html)
+
+an openai verified account and an openai token.
+
 ## Setup
 
 ### clone repo
 star this repo ⭐
 ```
-git clone https://github.com/y0av/telegram-bot-serverless-firebase-functions.git
+git clone https://github.com/y0av/telegram-openai-bot.git
 ```
 
 ### BotFather
