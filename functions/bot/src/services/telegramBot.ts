@@ -304,34 +304,22 @@ export class TelegramBotService {
         prompt: prompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json", // Request base64 encoded image
       });
 
       // Stop the loading animation
       stopLoading();
 
-      const imageData = response.data?.[0];
+      const imageUrl = response.data?.[0]?.url;
 
-      if (imageData?.b64_json) {
-        // Create a temporary file for the base64 image
-        const imageName = `dalle3_${Date.now()}.png`;
-        const tempImagePath = path.join(os.tmpdir(), imageName);
-
-        // Decode and save the base64 image
-        const imageBuffer = Buffer.from(imageData.b64_json, "base64");
-        fs.writeFileSync(tempImagePath, imageBuffer);
-
+      if (imageUrl) {
         // Send the image file directly
         await this.sender.sendPhoto(
           chatId,
-          fs.createReadStream(tempImagePath),
+          imageUrl,
           "dalle3 prompt: \"" + prompt + "\""
         );
-
-        // Clean up the temp file
-        fs.unlinkSync(tempImagePath);
       } else {
-        throw new Error("No base64 image data received from OpenAI");
+        throw new Error("No image url data received from OpenAI");
       }
     } catch (generateError) {
       // Stop the loading animation before showing error
